@@ -1,0 +1,66 @@
+Abuja, Nigeria
+Accra, Ghana
+Addis Ababa, Ethiopia
+Algiers, Algeria
+Antananarivo, Madagascar
+Asmara, Eritrea
+Bamako, Mali
+Bangui, Central African Republic
+Banjul, Gambia
+Bissau, Guinea-Bissau
+Brazzaville, Rep. of the Congo
+Cairo, Egypt
+Conakry, Guinea
+Dakar, Senegal
+Djibouti, Djibouti
+Dodoma, Tanzania
+El Aaiún
+Freetown, Sierra Leone
+Funchal, Madeira4
+Gaborone, Botswana
+Gitega, Burundi
+Harare, Zimbabwe
+Hargeisa, Somaliland1
+Jamestown, Saint Helena
+Juba, South Sudan
+Kampala, Uganda
+Khartoum, Sudan
+Kigali, Rwanda
+Kinshasa, D.R. Congo
+Libreville, Gabon
+Lilongwe, Malawi
+Lomé, Togo
+Luanda, Angola
+Lusaka, Zambia
+Malabo, Equatorial Guinea
+Mamoudzou, Mayotte3
+Maputo, Mozambique
+Maseru, Lesotho
+Mbabane,
+Lobamba,
+Mogadishu, Somalia
+Monrovia, Liberia
+Moroni, Comoros
+Nairobi, Kenya
+N'Djamena, Chad
+Niamey, Niger
+Nouakchott, Mauritania
+Ouagadougou, Burkina Faso
+Port Louis, Mauritius
+Porto-Novo, Benin
+Praia, Cape Verde
+Pretoria,
+Cape Town,
+Bloemfontein,
+Rabat, Morocco
+Saint-Denis, Réunion3
+Santa Cruz de Tenerife and Las Palmas, Canary Islands5
+São Tomé, São Tomé and Príncipe
+Tripoli, Libya
+Tunis, Tunisia
+Victoria, Seychelles
+Windhoek, Namibia
+Yamoussoukro,
+Abidjan,
+Yaoundé, Cameroon
+
