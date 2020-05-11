@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tous les chemins mènent à la philosophie</title>
+    <link rel="stylesheet" href="https://stackedit.io/style.css" />
+  </head>
+  <body class="stackedit">
+    <div class="stackedit__right">
+    <div class="stackedit__html">
+    {% block body %}
+      {# Début du bloc "body", dont vous devez modifier le contenu #}
+      <p>{{ message }}</p>
+      <p>Vous pouvez jouer en définissant manuellement d'où vous partez, ou alors en laissant l'algorithme choisir pour vous. Pour cette dernière option, il vous suffit de taper sur <code>Automatique</code>.</p>
+      <form action="/newgame" method="post">
+          <!-- Le contenu du formulaire commence ici -->
+          
+          <input type="text" id="bar" name="nom_page" placeholder="Tapez votre mot de départ"></input>
+      
+          <br>
+          <input type="submit" name="start" value="Manuel"></input>   
+          <input type="submit" name="stat_auto" value="Automatique"></input>
+          </br> 
+      </form>
+      {# Fin du bloc "body" #}
+    {% endblock %}
+    </div>
+    </div>
+  </body>
+</html>
