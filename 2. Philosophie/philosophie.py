@@ -6,7 +6,7 @@ from getpage import getPage
 
 app = Flask(__name__)
 
-app.secret_key = "TODO: mettre une valeur secrète ici"
+app.secret_key = "96NZnk)v6h?F3P["
 
 
 @app.route('/', methods=['GET'])

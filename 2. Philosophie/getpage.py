@@ -60,7 +60,9 @@ def get_links(page):
     return links[:10]
     
 
-    
+# décoder les chaînes de caractères
+# url = unquote(url)    
+
 
 def getPage(page): # TODO: écrire ceci
     title, json = getRawPage(page)
