@@ -1,45 +1,5 @@
-E..EEEE
-======================================================================
-ERROR: testFina3 (__main__.MyTests)
+.......
 ----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/home/p5hngk/Downloads/GitHub/MDI 344 - Données du Web/2. Philosophie/tests.py", line 64, in testFina3
-    title, links = getpage.getPage(article)
-ValueError: too many values to unpack (expected 2)
+Ran 7 tests in 14.603s
 
-======================================================================
-ERROR: testQ3content1 (__main__.MyTests)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/home/p5hngk/Downloads/GitHub/MDI 344 - Données du Web/2. Philosophie/tests.py", line 42, in testQ3content1
-    _, links = getpage.getPage(article)
-ValueError: too many values to unpack (expected 2)
-
-======================================================================
-ERROR: testQ3content2 (__main__.MyTests)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/home/p5hngk/Downloads/GitHub/MDI 344 - Données du Web/2. Philosophie/tests.py", line 48, in testQ3content2
-    _, links = getpage.getPage(article)
-ValueError: too many values to unpack (expected 2)
-
-======================================================================
-ERROR: testQ3content3 (__main__.MyTests)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/home/p5hngk/Downloads/GitHub/MDI 344 - Données du Web/2. Philosophie/tests.py", line 54, in testQ3content3
-    _, links = getpage.getPage(article)
-ValueError: too many values to unpack (expected 2)
-
-======================================================================
-ERROR: testQ3title (__main__.MyTests)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/home/p5hngk/Downloads/GitHub/MDI 344 - Données du Web/2. Philosophie/tests.py", line 36, in testQ3title
-    title, _ = getpage.getPage(article)
-ValueError: too many values to unpack (expected 2)
-
-----------------------------------------------------------------------
-Ran 7 tests in 150.157s
-
-FAILED (errors=5)
+OK

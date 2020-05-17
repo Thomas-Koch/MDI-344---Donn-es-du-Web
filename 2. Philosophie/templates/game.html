@@ -1,0 +1,44 @@
+{% extends "index.html" %}
+
+{% block body %}
+	<div class="stackedit__right">
+		<div class="stackedit__html">
+			<h1 style="font-size: 3.5em"> {{title}} </h1>
+		
+    		<p> Quelle page souhaitez-vous suivre ? </p>
+			<form action="/move" type='hidden' method="post" id="myform">
+		
+				{% for item in hrefs %}
+					{% if loop.first %}
+
+						<input type="radio" type='hidden' name="destination" value="{{item}}" checked>
+						<label for="{{item}}">{{item}}</label><br> 
+					{% else %}
+						<input type="radio" type='hidden' name="destination" value="{{item}}">
+						<label for="{{item}}">{{item}}</label><br> 
+					{% endif %}
+
+				{% endfor %}
+				<br>
+
+			</form>
+            
+<input type="submit" form="myform" name="sub"> 
+
+<br>
+<br>
+
+<hr>
+
+<p> Votre score actuel est de : 
+	<p style="font-size: 3em">
+		<strong> 
+			{{ session['score'] - 1}} 
+		</strong>
+	</p> 
+</p>
+        
+    </div>    
+	</div>
+
+{% endblock %}

@@ -8,6 +8,10 @@ from urllib.parse import urlencode
 from urllib.parse import unquote
 import ssl
 
+# Question 4.1 : gestion du cache
+global cache
+cache = dict()
+
 
 def getJSON(page):
     params = urlencode({
@@ -30,18 +34,28 @@ def getRawPage(page):
         title = parsed['parse']['title']  # TODO: remplacer ceci
         content = parsed['parse']['text']['*'] # TODO: remplacer ceci 
         return title, content
+        
     except KeyError:
         # La page demandée n'existe pas
         return None, None
 
-# Part 2 : Interrogation de l’API Wikipédia
-# We compute here a function that return all links contained in an html page
+     
+
+# Questions 4.2, 4.3 et 4.4
+
+def clean_txt(chain) :
+    chain = unquote(chain)
+    chain = chain.split('#')[0]
+    chain = chain.replace('_', ' ')
+    return chain
+
+
 
 def get_links(page):
     
-    title, json = getRawPage(page)
+    title, json_content = getRawPage(page)
     
-    soup = BeautifulSoup(json, 'html.parser')
+    soup = BeautifulSoup(json_content, 'html.parser')
     list_div = soup.find('div')
     list_p = list_div.find_all('p', recursive=False)
  
@@ -58,46 +72,88 @@ def get_links(page):
                 
     # question 2.7       
     return links[:10]
-    
-
-# décoder les chaînes de caractères
-# url = unquote(url)    
 
 
-def getPage(page): # TODO: écrire ceci
-    title, json = getRawPage(page)
+
+def getPage(page):
     
-    soup = BeautifulSoup(json, 'html.parser')
-    list_div = soup.find('div')
-    list_p = list_div.find_all('p', recursive=False)
- 
-    
-    # question 2.4
-    links = []
-    for link in list_p:
-        for el in link.find_all('a'):
-            href = el.get('href')
+    # Quesion 4.1 : gestion du cache
+    if page in cache.keys() :
+        return page, cache[page]
+
+    try :
+        title = getRawPage(page)[0]
+        content = getRawPage(page)[1]
+        
+        # On récupère les liens dans la page
+        soup = BeautifulSoup(content, 'html.parser')
+        soup_div = soup.find('div')
+        soup_p = soup_div.findAll('p', recursive=False)
+        
+        
             
-            # question 2.5 et 2.6
-            if href != None and href[:6] == '/wiki/':
-               links.append(href[6:])
+        # question 2.4
+        list_href = []
+        
+        for el in soup_p:
+            for link in el.findAll('a'):
+                href = link.get('href')
+            
+                # question 2.5 et 2.6
+                if href != None and href[:6] == '/wiki/':
+                    list_href.append(href[6:])
+        
+        
+        
+        # Questions 4.2, 4.3 et 4.4 : nettoyage des liens
+        list_href_clean = []
+        for el in list_href:
+            if len(clean_txt(el)):
+                # on retire si un seul fragment
+                list_href_clean.append(clean_txt(el))
+               
+        # Question 4.5 : on retire les liens vers des pages hors de l’espace de noms principal de Wikipédia
+        list_href_clean2 = []
+        for el in list_href_clean:
+            link_ok = True
+            for i in range(len(el)):
+                if el[i] == ':' :
+                    link_ok = False
+                    break
+            if link_ok:
+            	list_href_clean2.append(el)
+           	
+        # Question 4.6 : on élimine les doublons
+        list_href_clean3 = []
+        for el in list_href_clean2:
+            if el not in list_href_clean3:
+                list_href_clean3.append(el)
                 
-    # question 2.7       
-    return links[:10]
-
+        # Question 2.7 : on ne garde que les 10 premiers liens
+        list_href_clean3 = list_href_clean3[:10]
+        
+        # Question 4.1 : utilisation du cache
+        cache[title] = list_href_clean3
+        cache[page] = list_href_clean3
+        
+        return (title, list_href_clean3)
+    
+    except :
+        return (None, [])
+        
 
 
 if __name__ == '__main__':
     # Ce code est exécuté lorsque l'on exécute le fichier
-    print("Ça fonctionne !")
+    # print("Ça fonctionne !")
     
     # Voici des idées pour tester vos fonctions :
     # print(getJSON("Utilisateur:A3nm/INF344"))
-    # print(getRawPage("Utilisateur:A3nm/INF344"))
-    # print(getPage("Utilisateur:A3nm/INF344"))
-    # print(getRawPage("Histoire"))
+    print(getPage("Utilisateur:A3nm/INF344"))
     # print(getPage("Histoire"))
     
-    print(get_links(('Utilisateur:A3nm/INF344')))
+    # print(getPage("Geoffrey_Midddller"))
+    
+    # print(get_links(('Utilisateur:A3nm/INF344')))
     
 

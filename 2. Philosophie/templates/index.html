@@ -2,7 +2,9 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8">
+      <!--
     <link rel="stylesheet" type="text/css" href="/static/style.css">
+      --> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tous les chemins mènent à la philosophie</title>
     <link rel="stylesheet" href="https://stackedit.io/style.css" />
@@ -14,18 +16,44 @@
       {# Début du bloc "body", dont vous devez modifier le contenu #}
       <p>{{ message }}</p>
       <p>Vous pouvez jouer en définissant manuellement d'où vous partez, ou alors en laissant l'algorithme choisir pour vous. Pour cette dernière option, il vous suffit de taper sur <code>Automatique</code>.</p>
-      <form action="/newgame" method="post">
+      <form action="/new-game" method="post">
           <!-- Le contenu du formulaire commence ici -->
           
-          <input type="text" id="bar" name="nom_page" placeholder="Tapez votre mot de départ"></input>
+          <input type="text" id="bar" name="nom_page" placeholder="Tapez votre mot de départ">
       
           <br>
-          <input type="submit" name="start" value="Manuel"></input>   
-          <input type="submit" name="stat_auto" value="Automatique"></input>
-          </br> 
+          <input type="submit" name="start" value="Jouer">  
+          <!--
+          <input type="submit" name="stat_auto" value="Automatique">
+            -->
+          
       </form>
       {# Fin du bloc "body" #}
     {% endblock %}
+    
+    <br>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="stackedit">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span> 
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/tuto" >
+      <input class="but" type="submit" action="/tuto" value="Règles du jeu">
+    </form>
+    <br>
+        
+    <form action="/hist">
+      <input class="but" type="submit" value="Historique des scores">
+    </form>
+        
+        
     </div>
     </div>
   </body>
