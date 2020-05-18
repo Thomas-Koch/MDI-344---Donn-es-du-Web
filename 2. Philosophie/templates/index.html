@@ -2,59 +2,82 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <!--
     <link rel="stylesheet" type="text/css" href="/static/style.css">
       --> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tous les chemins mènent à la philosophie</title>
     <link rel="stylesheet" href="https://stackedit.io/style.css" />
+   
   </head>
+  {% block body %}
+  {# Début du bloc "body", dont vous devez modifier le contenu #}
+
   <body class="stackedit">
-    <div class="stackedit__right">
-    <div class="stackedit__html">
-    {% block body %}
-      {# Début du bloc "body", dont vous devez modifier le contenu #}
-      <p>{{ message }}</p>
-      <p>Vous pouvez jouer en définissant manuellement d'où vous partez, ou alors en laissant l'algorithme choisir pour vous. Pour cette dernière option, il vous suffit de taper sur <code>Automatique</code>.</p>
+    <div class="stackedit__left">
+      <div class="stackedit__toc">
+        
+  <ul>
+  <li><a href="#Tous--les--chemins--mènent--à--la--philosophie">Tous les chemins mènent à la philosophie</a>
+  <ul>
+  <li><a href="#Règles--du--jeu">Règles du jeu</a></li>
+  <li><a href="#A--vous--de--jouer--!">A vous de jouer !</a></li>
+  </ul>
+  </li>
+  </ul>
+  
+      </div>
+    </div>
+      
+      
+        <div class="stackedit__right">
+        <div class="stackedit__html">
+          <h1 id="Tous--les--chemins--mènent--à--la--philosophie">Tous les chemins mènent à la philosophie</h1>
+          <h2 id="Règles--du--jeu">Règles du jeu</h2>
+          <p> D'après ReadWriteWeb, tous les articles de la version anglaise de Wikipédia mènent à l'article <em>«Philosophy»</em></p>
+          <p>En cliquant systématiquement sur le premier lien de chaque article, on tombera, au bout d'un moment, sur l'article <em>Philosophy</em>.</p>
+        
+          <a href=http://www.slate.fr/lien/39255/wikipedia-articles-philosophy> Voir l'article </a>
+        
+          <p>Nous vous proposons ici un jeu visant à vérifier cette assertion, mais en trouvant le chemin le plus court 
+            sans suivre systématiquement le premier lien trouvé. Voici les règles de ce jeu :</p>
+          <ol>
+          <li>Choisir mot de départ et valider</li>
+          <li>A partir de ce mot, choisir le mot suivant parmi les mots de la liste qui s'affiche</li>
+          <li>Renouveller l'étape 2 autant de fois que nécéssaire</li>
+          <li>Si vous parvenez au mot <strong><em>"Philosophie"</em></strong>, alors c'est gagné</li>
+          </ol>
+      
+      <h2 id="A--vous--de--jouer--!">A vous de jouer !</h2>
+      <p>Choisissez votre mot de départ !</p>
       <form action="/new-game" method="post">
           <!-- Le contenu du formulaire commence ici -->
           
-          <input type="text" id="bar" name="nom_page" placeholder="Tapez votre mot de départ">
+          <input type="text" id="bar" name="nom_page" placeholder="Mot de départ">
       
           <br>
           <input type="submit" name="start" value="Jouer">  
-          <!--
-          <input type="submit" name="stat_auto" value="Automatique">
-            -->
+      
           
       </form>
-      {# Fin du bloc "body" #}
-    {% endblock %}
-    
+     
     <br>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        {% for category, message in messages %}
-          <div class="stackedit">
-            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span> 
+        {% for category, message in messages %} 
+            <h3>
             {{ message }}
-          </div>
+            </h3>
         {% endfor %}
       {% endif %}
     {% endwith %}
+  
+    </div>
+    </div>
+    {# Fin du bloc "body" #}
+    {% endblock %}
 
-    <form action="/tuto" >
-      <input class="but" type="submit" action="/tuto" value="Règles du jeu">
-    </form>
-    <br>
-        
-    <form action="/hist">
-      <input class="but" type="submit" value="Historique des scores">
-    </form>
-        
-        
-    </div>
-    </div>
   </body>
 </html>

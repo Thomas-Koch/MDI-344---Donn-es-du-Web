@@ -1,21 +1,36 @@
 {% extends "index.html" %}
 
 {% block body %}
+<body class="stackedit"></body>
+	<div class="stackedit__left">
+		<div class="stackedit__toc">
+	  
+	<ul>
+	<li><a href="#Vous--êtes--au--mot">Vous êtes au mot : <em>{{title}}</em></a></li>
+	<li><a href="#Score">Score</a></li>
+	<li><a href="#Rappel--des--règles">Rappel des règles</a></li>
+	</ul>
+		</div>
+	</div>
+
 	<div class="stackedit__right">
 		<div class="stackedit__html">
-			<h1 style="font-size: 3.5em"> {{title}} </h1>
+			<h1 id="Vous--êtes--au--mot">Vous êtes au mot : <i>{{title}}</i></h1>
 		
-    		<p> Quelle page souhaitez-vous suivre ? </p>
+    		<h3> Quelle page souhaitez-vous suivre maintenant ? </h3>
 			<form action="/move" type='hidden' method="post" id="myform">
 		
 				{% for item in hrefs %}
 					{% if loop.first %}
-
+						<label>
 						<input type="radio" type='hidden' name="destination" value="{{item}}" checked>
-						<label for="{{item}}">{{item}}</label><br> 
+						{{item}}
+						</label><br> 
 					{% else %}
+						<label>
 						<input type="radio" type='hidden' name="destination" value="{{item}}">
-						<label for="{{item}}">{{item}}</label><br> 
+						{{item}}
+						</label><br> 
 					{% endif %}
 
 				{% endfor %}
@@ -25,20 +40,33 @@
             
 <input type="submit" form="myform" name="sub"> 
 
-<br>
-<br>
-
-<hr>
-
+<h1 id="Score">Score</h1>
 <p> Votre score actuel est de : 
-	<p style="font-size: 3em">
-		<strong> 
-			{{ session['score'] - 1}} 
-		</strong>
-	</p> 
+<br>
+<span style="font-size: 2.5em">
+	<strong>
+		{{ session['score'] - 1}} 
+	</strong>
+</span> 
 </p>
+
+<h1 id="Rappel--des--règles">Rappel des règles</h1>
+        <p>D'après ReadWriteWeb, tous les articles de la version anglaise de Wikipédia mènent à l'article <em>«Philosophy»</em>.</p>
+        <p>En cliquant systématiquement sur le premier lien de chaque article, on tombera, au bout d'un moment, sur l'article <em>Philosophy</em>.</p>
+        
+        <a href=http://www.slate.fr/lien/39255/wikipedia-articles-philosophy> Voir l'article </a>
+        
+		<p>Nous vous proposons ici un jeu visant à vérifier cette assertion, mais en trouvant le chemin le plus court 
+            sans suivre systématiquement le premier lien trouvé. Voici les règles de ce jeu :</p>
+        <ol>
+        	<li>Choisir mot de départ et valider</li>
+			<li>A partir de ce mot, choisir le mot suivant parmi les mots de la liste qui s'affiche</li>
+			<li>Renouveller l'étape 2 autant de fois que nécéssaire</li>
+			<li>Si vous parvenez au mot <strong><em>"Philosophie"</em></strong>, alors c'est gagné</li>
+		</ol>
         
     </div>    
 	</div>
+</body>
 
 {% endblock %}
