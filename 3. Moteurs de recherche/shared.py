@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import re
+from collections import defaultdict, Counter
 
 # Remove the part after the last '/' of an URL
 # https://a.com/b/c/d becomes https://a.com/b/c
@@ -82,9 +83,12 @@ def neighbors(pageContent, respURL):
     return list(filter(lambda x:x,map(lambda x: globalLink(respURL,x),m)))
 
 
+# def wordListToFreqDict(wordlist):
+#     wordfreq = [wordlist.count(p) for p in wordlist]
+#     return dict(list(zip(wordlist,wordfreq)))
+
 def wordListToFreqDict(wordlist):
-    wordfreq = [wordlist.count(p) for p in wordlist]
-    return dict(list(zip(wordlist,wordfreq)))
+    return Counter(wordlist)
 
 def sortFreqDict(freqdict):
     aux = [(freqdict[key], key) for key in freqdict]

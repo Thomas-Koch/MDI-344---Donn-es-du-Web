@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compte rendu TP - Thomas Koch</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__left">
+    <div class="stackedit__toc">
+      
+<ul>
+<li><a href="#compte-rendu-du-tp--moteur-de-recherche-pour-wikipédia-mathématiques">Compte rendu du TP : Moteur de recherche pour Wikipédia Mathématiques</a>
+<ul>
+<li><a href="#description-rapide-de-la-base-de-données">Description rapide de la base de données</a></li>
+<li><a href="#première-phase--crawling-du-site">1. Première phase : crawling du site</a>
+<ul>
+<li></li>
+</ul>
+</li>
+<li><a href="#deuxième-phase--précalcul-de-tf-et-idf">2. Deuxième phase : précalcul de TF et IDF</a></li>
+<li><a href="#calcul-du-pagerank">3. Calcul du PageRank</a>
+<ul>
+<li></li>
+</ul>
+</li>
+<li><a href="#requêtage">4. Requêtage</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="stackedit__right">
+    <div class="stackedit__html">
+      <h1 id="compte-rendu-du-tp--moteur-de-recherche-pour-wikipédia-mathématiques">Compte rendu du TP : Moteur de recherche pour Wikipédia Mathématiques</h1>
+<p><em><strong>Thomas Koch</strong></em></p>
+<h2 id="description-rapide-de-la-base-de-données">Description rapide de la base de données</h2>
+<p>Nous disposons de <strong>2 tables</strong> dans la base de données initiale :</p>
+<ul>
+<li><em><strong>webpages</strong></em></li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th>URL</th>
+<th>content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>URL de la page</em></td>
+<td><em>contenu HTML de la page retourné par le serveur au format txt</em></td>
+</tr>
+</tbody>
+</table><ul>
+<li><em><strong>responses</strong></em></li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th>queryURL</th>
+<th>respURL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>URL que le crawler a demandé</em></td>
+<td><em>URL que le crawler a reçu</em></td>
+</tr>
+</tbody>
+</table><h2 id="première-phase--crawling-du-site">1. Première phase : crawling du site</h2>
+<p>Pour toutes les questions, nous utilisons le code suivant :</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> sqlite3
+
+conn <span class="token operator">=</span> sqlite3<span class="token punctuation">.</span>connect<span class="token punctuation">(</span><span class="token string">"data.db"</span><span class="token punctuation">)</span>
+cursor <span class="token operator">=</span> conn<span class="token punctuation">.</span>cursor<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h4 id="question--combien-il-y-a-de-pages-indexées-">Question : <em>Combien il y a de pages indexées ?</em></h4>
+<p>Pour répondre à cette question, on effectue la requête suivante :</p>
+<pre class=" language-python"><code class="prism  language-python">cursor<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"SELECT COUNT(DISTINCT URL) FROM webpages"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>cursor<span class="token punctuation">.</span>fetchone<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span> 
+</code></pre>
+<p>On obtient en retour <strong>6 424 pages indexées</strong>.</p>
+<p>La réponse est la même avec la requête suivante :</p>
+<pre class=" language-python"><code class="prism  language-python">cursor<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"SELECT COUNT(DISTINCT respURL) FROM responses"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>cursor<span class="token punctuation">.</span>fetchone<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span> 
+</code></pre>
+<h4 id="question--combien-de-pages-ont-la-même-url-requêtée-et-répondue-">Question : <em>Combien de pages ont la même URL requêtée et répondue ?</em></h4>
+<p>On répond à cette question à l’aide de la requête suivante :</p>
+<pre class=" language-python"><code class="prism  language-python">cursor<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"SELECT COUNT(DISTINCT queryURL) FROM responses WHERE queryURL = respURL"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>cursor<span class="token punctuation">.</span>fetchone<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<p>On obtient en retour <strong>3 197 pages qui ont la même URL requêtée et répondue</strong>.</p>
+<p><em>Remarque</em> : Nous avons au total <strong>9 048 queryURL</strong>. Cela s’obtient avec</p>
+<pre class=" language-python"><code class="prism  language-python">cursor<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"SELECT COUNT(DISTINCT queryURL) FROM responses"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>cursor<span class="token punctuation">.</span>fetchone<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span> 
+</code></pre>
+<h4 id="question--certaines-pages-comme-httpswiki.jachiet.comwikipedia_fr_mathematics_nopic_2020-04asurface_de_delaunay-ne-sont-pas-indexées-pourquoi--pouvez-vous-en-trouver-d’autres-">Question : <em>Certaines pages comme <a href="https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Surface_de_Delaunay">https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Surface_de_Delaunay</a> ne sont pas indexées, pourquoi ? Pouvez-vous en trouver d’autres ?</em></h4>
+<p>En tapant la requête suivante :</p>
+<pre class=" language-python"><code class="prism  language-python">page_requete <span class="token operator">=</span> <span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Surface_de_Delaunay'</span>
+cursor<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"SELECT COUNT(respURL) FROM responses WHERE queryURL = ?"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>page_requete<span class="token punctuation">,</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>cursor<span class="token punctuation">.</span>fetchone<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<p>On obtient bien en retour <strong>0</strong>. La page en question n’est effectivement pas indexée.</p>
+<p>Cela s’explique par le fait que certaines pages ne sont <strong>accessibles que depuis la homepage</strong>. Ces pages sont dites <strong>orphelines</strong>. C’est ce qui explique la différence entre les plus de 7 000 pages annoncées et les 6 424 pages indexées.</p>
+<p>Pour en trouver d’autre, il faut se rendre sur la homepage <a href="https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/index">https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/index</a> puis rechercher à la main des pages non indexées.</p>
+<h2 id="deuxième-phase--précalcul-de-tf-et-idf">2. Deuxième phase : précalcul de TF et IDF</h2>
+<p>Pour cette partie, j’ai modifié le fichier <code>shared.py</code> pour faciliter certains calculs.</p>
+<p>Ainsi, j’ai appelé directement la fonction <code>stem()</code> à la fin de <code>extractListOfWords</code> pour avoir une liste de mot déjà <em>stemée</em> en sortie.</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">def</span> <span class="token function">extractListOfWords</span><span class="token punctuation">(</span>content<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    soup <span class="token operator">=</span> BeautifulSoup<span class="token punctuation">(</span>content<span class="token punctuation">,</span> <span class="token string">'html.parser'</span><span class="token punctuation">)</span>
+    textTags <span class="token operator">=</span> soup<span class="token punctuation">.</span>find_all<span class="token punctuation">(</span>text<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>    <span class="token comment"># find all tags with texts</span>
+    <span class="token comment"># this regex tries to find words that should not contain any of these weird chars.</span>
+    regex<span class="token operator">=</span>re<span class="token punctuation">.</span><span class="token builtin">compile</span><span class="token punctuation">(</span>r<span class="token string">"[^ \n'’)(\]\[ {}\\]+"</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> t <span class="token keyword">in</span> textTags<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> t<span class="token punctuation">.</span>parent<span class="token punctuation">.</span>name <span class="token operator">not</span> <span class="token keyword">in</span> blacklist<span class="token punctuation">:</span> <span class="token comment"># we don't want to index thoses texts</span>
+            <span class="token keyword">for</span> e <span class="token keyword">in</span> regex<span class="token punctuation">.</span>findall<span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">:</span>
+                <span class="token keyword">yield</span> stem<span class="token punctuation">(</span>e<span class="token punctuation">)</span> <span class="token comment"># appel direct de stem()</span>
+</code></pre>
+<p>Deuxièmement, j’ai défini les fonctions suivante pour calculer mes occurences de mot dans un dictionnaire et trier dans une liste les éléments de ce dictionnaire :</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">def</span> <span class="token function">wordListToFreqDict</span><span class="token punctuation">(</span>wordlist<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> Counter<span class="token punctuation">(</span>wordlist<span class="token punctuation">)</span>
+
+<span class="token keyword">def</span> <span class="token function">sortFreqDict</span><span class="token punctuation">(</span>freqdict<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    aux <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">(</span>freqdict<span class="token punctuation">[</span>key<span class="token punctuation">]</span><span class="token punctuation">,</span> key<span class="token punctuation">)</span> <span class="token keyword">for</span> key <span class="token keyword">in</span> freqdict<span class="token punctuation">]</span>
+    aux<span class="token punctuation">.</span>sort<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    aux<span class="token punctuation">.</span>reverse<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> aux
+</code></pre>
+<p>J’avais initialement une autre version de <code>wordListToFreqDict</code> mais elle n’était pas optimisée :</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">def</span> <span class="token function">wordListToFreqDict</span><span class="token punctuation">(</span>wordlist<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    wordfreq <span class="token operator">=</span> <span class="token punctuation">[</span>wordlist<span class="token punctuation">.</span>count<span class="token punctuation">(</span>p<span class="token punctuation">)</span> <span class="token keyword">for</span> p <span class="token keyword">in</span> wordlist<span class="token punctuation">]</span>
+    <span class="token keyword">return</span> <span class="token builtin">dict</span><span class="token punctuation">(</span><span class="token builtin">list</span><span class="token punctuation">(</span><span class="token builtin">zip</span><span class="token punctuation">(</span>wordlist<span class="token punctuation">,</span>wordfreq<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="sous-phase-1--calcul-de-l’index-inversé">2.1 Sous-phase 1 : calcul de l’index inversé</h3>
+<p>Dans cette partie j’ai créé la table <em><strong>inverted_index</strong></em> suivante :</p>
+
+<table>
+<thead>
+<tr>
+<th>keyword</th>
+<th>URL</th>
+<th>frequency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>mot stemé</em></td>
+<td><em>URL dans laquel on trouve ce mot</em></td>
+<td><em>fréquence du mot dans la page</em></td>
+</tr>
+</tbody>
+</table><p>Le détail de la création se trouve dans le fichier <code>index.py</code>.</p>
+<p>Un même mot se retrouvant généralement dans plusieurs pages, on trouvera donc dans cette table plusieurs lignes avec le même mot mais pour des URL différentes et donc avec des frequences différentes.</p>
+<p>A partir de cette table, j’ai également créé l’index <em><strong>inv_ind</strong></em> correspondant :</p>
+<pre class=" language-python"><code class="prism  language-python">conn<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"DROP INDEX IF EXISTS inv_ind"</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>commit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"CREATE INDEX inv_ind ON inverted_index(keyword)"</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>commit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h4 id="question--dans-quelle-page-apparaît-le-plus-souvent-en-fréquence-le-terme-“matrice”-">Question : <em>Dans quelle page apparaît le plus souvent (en fréquence) le terme “matrice” ?</em></h4>
+<p>En stemant le mot ‘<em>matrice</em>’ il devient ‘<em>matric</em>’. Pour répondre à cette question, j’ai donc requêtée la nouvelle table ainsi :</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">for</span> row <span class="token keyword">in</span> cursor<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"SELECT keyword, URL, MAX(frequency) FROM inverted_index WHERE keyword LIKE('matric')"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>row<span class="token punctuation">)</span> 
+</code></pre>
+<p>On obtient en retour :</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token punctuation">(</span><span class="token string">'matric'</span><span class="token punctuation">,</span> <span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Matrice_involutive'</span><span class="token punctuation">,</span> <span class="token number">0.06896551724137931</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Ainsi, le terme matrice apparaît le plus souvent dans <a href="https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Matrice_involutive">https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Matrice_involutive</a> avec une <strong>fréquence de 0.069</strong>.</p>
+<h3 id="sous-phase-2--précalcul-de-l’inverse-document-frequency">2.2 Sous-phase 2 : précalcul de l’inverse document frequency</h3>
+<p>Dans cette partie j’ai créé la table <em><strong>invert_document_frequency</strong></em> suivante :</p>
+
+<table>
+<thead>
+<tr>
+<th>keyword</th>
+<th>idf</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>mot stemé</em></td>
+<td><em>idf du mot</em></td>
+</tr>
+</tbody>
+</table><p>Le détail de la création se trouve dans le fichier <code>index.py</code>.</p>
+<p>Comme précédemment, j’ai créé l’index <em><strong>inv_doc_freq</strong></em> correspondant :</p>
+<pre class=" language-python"><code class="prism  language-python">conn<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"DROP INDEX IF EXISTS inv_doc_freq"</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>commit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"CREATE INDEX inv_doc_freq ON invert_document_frequency(keyword)"</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>commit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h4 id="question--quel-est-l’idf-de-“matrice”-">Question : <em>Quel est l’IDF de “matrice” ?</em></h4>
+<p>En stemant le mot ‘<em>matrice</em>’ il devient ‘<em>matric</em>’. Pour répondre à cette question, j’ai donc requêtée la nouvelle table ainsi :</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">for</span> row <span class="token keyword">in</span> cursor<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"SELECT * FROM invert_document_frequency WHERE keyword LIKE('matric')"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>row<span class="token punctuation">)</span> 
+</code></pre>
+<p>On obtient en retour :</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token punctuation">(</span><span class="token string">'matric'</span><span class="token punctuation">,</span> <span class="token number">2.0670651460787868</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Ainsi, <strong>le terme matrice a un IDF de 2.067</strong>.</p>
+<h2 id="calcul-du-pagerank">3. Calcul du PageRank</h2>
+<p>Dans cette partie, j’ai simplement suivi l’algorithme donné dans l’énoncé. Le code complet se trouve dans <code>pagerank.py</code>.</p>
+<p>A partir des scores calculés pour chaque page, j’ai créé la table <em><strong>page_rank</strong></em> :</p>
+
+<table>
+<thead>
+<tr>
+<th>URL</th>
+<th>rank_score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>URL</em></td>
+<td><em>score de la page</em></td>
+</tr>
+</tbody>
+</table><h4 id="question--quelles-sont-les-20-pages-qui-ont-le-meilleur-pagerank--comment-l’expliquez-vous-">Question : <em>Quelles sont les 20 pages qui ont le meilleur PageRank ? Comment l’expliquez-vous ?</em></h4>
+<p>Pour répondre à cette question, j’ai requêtée la table <em><strong>page_rank</strong></em> ainsi :</p>
+<pre class=" language-python"><code class="prism  language-python">i <span class="token operator">=</span> <span class="token number">1</span>
+<span class="token keyword">for</span> row <span class="token keyword">in</span> cursor<span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token string">"SELECT * FROM page_rank ORDER BY rank_score DESC LIMIT(20)"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Rang n°"</span><span class="token punctuation">,</span> i<span class="token punctuation">,</span> <span class="token string">" : "</span> <span class="token punctuation">,</span> row<span class="token punctuation">)</span>
+    i <span class="token operator">+=</span> <span class="token number">1</span>
+</code></pre>
+<p>On obtient en retour :</p>
+<pre class=" language-python"><code class="prism  language-python">Rang n° <span class="token number">1</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Fonction_de_Legendre'</span><span class="token punctuation">,</span> <span class="token number">0.0197644485616221</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">2</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/skin/jquery-ui/jquery-ui.min.css'</span><span class="token punctuation">,</span> <span class="token number">0.019671562244612254</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">3</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/skin/jquery-ui/jquery-ui.theme.min.css'</span><span class="token punctuation">,</span> <span class="token number">0.019671562244612254</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">4</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/skin/taskbar.css'</span><span class="token punctuation">,</span> <span class="token number">0.019664733244636343</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">5</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/index'</span><span class="token punctuation">,</span> <span class="token number">0.019664733244636343</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">6</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/-/s/css_modules/style.css'</span><span class="token punctuation">,</span> <span class="token number">0.019569982525398016</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">7</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/-/s/css_modules/content.parsoid.css'</span><span class="token punctuation">,</span> <span class="token number">0.019413767354763047</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">8</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/-/s/css_modules/inserted_style.css'</span><span class="token punctuation">,</span> <span class="token number">0.019413767354763047</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">9</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/-/s/css_modules/skins.minerva.base.reset%7Cskins.minerva.content.styles%7Cext.cite.style%7Csite.styles%7Cmobile.app.pagestyles.android%7Cmediawiki.page.gallery.styles%7Cmediawiki.skinning.content.parsoid.css'</span><span class="token punctuation">,</span> <span class="token number">0.019413767354763047</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">10</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/-/s/css_modules/ext.cite.styles.css'</span><span class="token punctuation">,</span> <span class="token number">0.012263903508030726</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">11</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/-/s/css_modules/ext.cite.ux-enhancements.css'</span><span class="token punctuation">,</span> <span class="token number">0.012263903508030726</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">12</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/-/s/css_modules/ext.math.scripts.css'</span><span class="token punctuation">,</span> <span class="token number">0.011330781700096805</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">13</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/-/s/css_modules/ext.math.styles.css'</span><span class="token punctuation">,</span> <span class="token number">0.011330781700096805</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">14</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Math%C3%A9matiques'</span><span class="token punctuation">,</span> <span class="token number">0.009221062893989699</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">15</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Math%C3%A9maticien'</span><span class="token punctuation">,</span> <span class="token number">0.005206897322336257</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">16</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Nombre_complexe'</span><span class="token punctuation">,</span> <span class="token number">0.0028681750527191985</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">17</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Nombre_r%C3%A9el'</span><span class="token punctuation">,</span> <span class="token number">0.002694853670808547</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">18</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/G%C3%A9om%C3%A9trie'</span><span class="token punctuation">,</span> <span class="token number">0.002503709921567482</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">19</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/Polyn%C3%B4me_de_Legendre'</span><span class="token punctuation">,</span> <span class="token number">0.002193746087894584</span><span class="token punctuation">)</span>
+Rang n° <span class="token number">20</span>  <span class="token punctuation">:</span>  <span class="token punctuation">(</span><span class="token string">'https://wiki.jachiet.com/wikipedia_fr_mathematics_nopic_2020-04/A/American_Mathematical_Society'</span><span class="token punctuation">,</span> <span class="token number">0.002049139094323055</span><span class="token punctuation">)</span>
+</code></pre>
+<p>On constate donc que nous obtenons beaucoup de pages <code>.css</code>. Cela est finalement normal puisqu’elles permettent d’avoir une uniformité de design entre plusieurs pages différentes.</p>
+<p><em><strong>Remarque :</strong></em> Il serait éventuellement intéressant d’exclure les pages <code>.css</code> lors du crawling pour ne noter que les url avec du contenu qui intéresse les utilisateurs du moteur de recherche.</p>
+<h2 id="requêtage">4. Requêtage</h2>
+<p>Le code de cette partie se trouve dans <code>query.py</code>.</p>
+<h3 id="avec-simplement-tf-idf">4.1 Avec simplement tf-idf</h3>
+<p>On implémente le tri en utilisant uniquement la métrique tf-idf.</p>
+<h4 id="question--quelles-sont-les-dix-premières-pages-pour-“comment-multiplier-des-matrices”-">Question : <em>Quelles sont les dix premières pages pour “comment multiplier des matrices” ?</em></h4>
+<p>Le résultat de l’algorithme donne :</p>
+<pre class=" language-python"><code class="prism  language-python">Saisissez votre requête <span class="token punctuation">:</span>comment multiplier des matrices
+
+Résultat de votre requête avec le mode tf<span class="token operator">-</span>idf <span class="token punctuation">.</span>
+
+Rang n° <span class="token number">1</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_involutive
+Rang n° <span class="token number">2</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_normale
+Rang n° <span class="token number">3</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_de_permutation
+Rang n° <span class="token number">4</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_de_Hessenberg
+Rang n° <span class="token number">5</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_<span class="token operator">%</span>C3<span class="token operator">%</span>A9l<span class="token operator">%</span>C3<span class="token operator">%</span>A9mentaire
+Rang n° <span class="token number">6</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_orthogonale
+Rang n° <span class="token number">7</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_unitaire
+Rang n° <span class="token number">8</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrices_congruentes
+Rang n° <span class="token number">9</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrices_semblables
+Rang n° <span class="token number">10</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_adjointe
+</code></pre>
+<h3 id="avec-tf-idf-et-pagerank">4.2 Avec tf-idf et PageRank</h3>
+<p>On implémente le tri en utilisant tf-idf multiplié par le PageRank de la page.</p>
+<h4 id="question--quelles-sont-les-dix-premières-pages-pour-“comment-multiplier-des-matrices”--1">Question : <em>Quelles sont les dix premières pages pour “comment multiplier des matrices” ?</em></h4>
+<p>Le résultat de l’algorithme donne :</p>
+<pre class=" language-python"><code class="prism  language-python">Saisissez votre requête <span class="token punctuation">:</span>comment multiplier des matrices
+
+Résultat de votre requête avec le mode tf<span class="token operator">-</span>idf <span class="token operator">*</span> pagerank <span class="token punctuation">.</span>
+
+Rang n° <span class="token number">1</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_<span class="token punctuation">(</span>math<span class="token operator">%</span>C3<span class="token operator">%</span>A9matiques<span class="token punctuation">)</span>
+Rang n° <span class="token number">2</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_identit<span class="token operator">%</span>C3<span class="token operator">%</span>A9
+Rang n° <span class="token number">3</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_orthogonale
+Rang n° <span class="token number">4</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_d'adjacence
+Rang n° <span class="token number">5</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_diagonale
+Rang n° <span class="token number">6</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Groupe_g<span class="token operator">%</span>C3<span class="token operator">%</span>A9n<span class="token operator">%</span>C3<span class="token operator">%</span>A9ral_lin<span class="token operator">%</span>C3<span class="token operator">%</span>A9aire
+Rang n° <span class="token number">7</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_inversible
+Rang n° <span class="token number">8</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_normale
+Rang n° <span class="token number">9</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Groupe_de_Lie
+Rang n° <span class="token number">10</span>  <span class="token punctuation">:</span>  https<span class="token punctuation">:</span><span class="token operator">//</span>wiki<span class="token punctuation">.</span>jachiet<span class="token punctuation">.</span>com<span class="token operator">/</span>wikipedia_fr_mathematics_nopic_2020<span class="token number">-04</span><span class="token operator">/</span>A<span class="token operator">/</span>Matrice_de_permutation
+
+</code></pre>
+
+    </div>
+  </div>
+</body>
+
+</html>
